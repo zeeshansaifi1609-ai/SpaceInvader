@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Invaders Arcade</title>
+  <style>
+    /* BASIC STYLES */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #050505;
+      color: #00ff00;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* HEADER & DASHBOARD */
+    header {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 32px;
+      text-shadow: 0 0 10px #00ff00;
+      margin-bottom: 5px;
+    }
+
+    .dashboard {
+      display: flex;
+      justify-content: space-between;
+      width: 600px;
+      background-color: #111;
+      border: 2px solid #00ff00;
+      padding: 10px 20px;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    /* CANVAS AREA */
+    #gameContainer {
+      position: relative;
+      width: 600px;
+      height: 500px;
+    }
+
+    canvas {
+      background-color: #000;
+      border: 2px solid #00ff00;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+      display: block;
+    }
+
+    /* CONTROLS GUIDE */
+    footer {
+      margin-top: 15px;
+      color: #888;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .key {
+      color: #fff;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>SPACE INVADERS</h1>
+  </header>
+
+  <div class="dashboard">
+    <div>SCORE: <span id="scoreVal">0</span></div>
+    <div>LIVES: <span id="livesVal">3</span></div>
+    <div>LEVEL: <span id="levelVal">1</span></div>
+  </div>
+
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="600" height="500"></canvas>
+  </div>
+
+  <footer>
+    Press <span class="key">LEFT</span> / <span class="key">RIGHT</span> to move | Press <span class="key">SPACE</span> to shoot
+  </footer>
+
+  <script>
+    // GAME CONFIGURATION & STATE
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const scoreDisplay = document.getElementById("scoreVal");
+    const livesDisplay = document.getElementById("livesVal");
+    const levelDisplay = document.getElementById("levelVal");
+
+    let score = 0;
+    let lives = 3;
+    let level = 1;
+    let isGameOver = false;
+
+    // PLAYER OBJECT
+    const player = {
+      x: canvas.width / 2 - 20,
+      y: canvas.height - 40,
+      width: 40,
+      height: 20,
+      speed: 5,
+      dx: 0,
+      color: "#00ff00"
+    };
+
+    // PROJECTILES
+    const playerBullets = [];
+    const alienBullets = [];
+    const bulletSpeed = 6;
+
+    // ALIEN GRID CONFIGURATION
+    const alienRows = 4;
+    const alienCols = 8;
+    const alienWidth = 32;
+    const alienHeight = 20;
+    const alienPadding = 15;
+    const alienOffsetTop = 40;
+    const alienOffsetLeft = 45;
+
+    let aliens = [];
+    let alienDirection = 1;
+    let alienSpeed = 1;
+    let alienStepDown = 12;
+
+    // INITIALIZE ALIENS
+    function initAliens() {
+      aliens = [];
+      for (let r = 0; r < alienRows; r++) {
+        aliens[r] = [];
+        for (let c = 0; c < alienCols; c++) {
+          aliens[r][c] = {
+            x: c * (alienWidth + alienPadding) + alienOffsetLeft,
+            y: r * (alienHeight + alienPadding) + alienOffsetTop,
+            alive: true,
+            type: r // Different rows can represent different alien types
+          };
+        }
+      }
+    }
+
+    // INPUT HANDLING
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") player.dx = -player.speed;
+      if (e.key === "ArrowRight") player.dx = player.speed;
+      if (e.key === " " && !isGameOver) {
+        firePlayerBullet();
+      }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        player.dx = 0;
+      }
+    });
+
+    function firePlayerBullet() {
+      // Limit on-screen bullets to prevent spamming
+      if (playerBullets.length < 3) {
+        playerBullets.push({
+          x: player.x + player.width / 2 - 2,
+          y: player.y,
+          width: 4,
+          height: 10,
+          color: "#ffffff"
+        });
+      }
+    }
+
+    // UPDATE GAME LOGIC
+    function updatePlayer() {
+      player.x += player.dx;
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.width > canvas.width) {
+        player.x = canvas.width - player.width;
+      }
+    }
+
+    function updateBullets() {
+      // Player bullets
+      for (let i = playerBullets.length - 1; i >= 0; i--) {
+        playerBullets[i].y -= bulletSpeed;
+        if (playerBullets[i].y < 0) {
+          playerBullets.splice(i, 1);
+        }
+      }
+    }
+
+    function updateAliens() {
+      let moveDown = false;
+
+      for (let r = 0; r < alienRows; r++) {
+        for (let c = 0; c < alienCols; c++) {
+          let a = aliens[r][c];
+          if (a.alive) {
+            a.x += alienSpeed * alienDirection;
+            if (a.x + alienWidth >= canvas.width || a.x <= 0) {
+              moveDown = true;
+            }
+          }
+        }
+      }
+
+      if (moveDown) {
+        alienDirection *= -1;
+        for (let r = 0; r < alienRows; r++) {
+          for (let c = 0; c < alienCols; c++) {
+            let a = aliens[r][c];
+            a.y += alienStepDown;
+            if (a.alive && a.y + alienHeight >= player.y) {
+              isGameOver = true;
+            }
+          }
+        }
+      }
+    }
+
+    function checkCollisions() {
+      for (let i = playerBullets.length - 1; i >= 0; i--) {
+        let b = playerBullets[i];
+        for (let r = 0; r < alienRows; r++) {
+          for (let c = 0; c < alienCols; c++) {
+            let a = aliens[r][c];
+            if (a.alive) {
+              if (
+                b.x < a.x + alienWidth &&
+                b.x + b.width > a.x &&
+                b.y < a.y + alienHeight &&
+                b.y + b.height > a.y
+              ) {
+                a.alive = false;
+                playerBullets.splice(i, 1);
+                score += 10;
+                scoreDisplay.textContent = score;
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // RENDER DRAWINGS
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+      // Cannon tip
+      ctx.fillRect(player.x + player.width / 2 - 3, player.y - 6, 6, 6);
+    }
+
+    function drawBullets() {
+      playerBullets.forEach((b) => {
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+      });
+    }
+
+    function drawAliens() {
+      for (let r = 0; r < alienRows; r++) {
+        for (let c = 0; c < alienCols; c++) {
+          let a = aliens[r][c];
+          if (a.alive) {
+            ctx.fillStyle = r === 0 ? "#ff0055" : r === 1 ? "#ffcc00" : "#00ccff";
+            ctx.fillRect(a.x, a.y, alienWidth, alienHeight);
+          }
+        }
+      }
+    }
+
+    function renderGameOver() {
+      ctx.fillStyle = "#ff0000";
+      ctx.font = "36px 'Courier New'";
+      ctx.textAlign = "center";
+      ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
+    }
+
+    // MAIN GAME LOOP
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!isGameOver) {
+        updatePlayer();
+        updateBullets();
+        updateAliens();
+        checkCollisions();
+
+        drawPlayer();
+        drawBullets();
+        drawAliens();
+
+        requestAnimationFrame(gameLoop);
+      } else {
+        renderGameOver();
+      }
+    }
+
+    // START GAME
+    initAliens();
+    gameLoop();
+  </script>
+</body>
+</html>
