@@ -1,318 +1,720 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Space Invaders Arcade</title>
-  <style>
-    /* BASIC STYLES */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050816">
+<title>SPACEINVADER | Official</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: #02040b;
+    color: #fff;
+    font-family: Inter, sans-serif;
+}
+
+/* ---------- BACKGROUND ---------- */
+
+.space {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: -5;
+    background:
+        radial-gradient(circle at 50% 40%, #101c42 0%, #050918 38%, #02040b 75%);
+}
+
+.space::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,.9) 1px, transparent 1px);
+    background-size: 75px 75px;
+    opacity: .25;
+    animation: stars 80s linear infinite;
+}
+
+@keyframes stars {
+    from { transform: translate(0,0); }
+    to { transform: translate(75px,75px); }
+}
+
+.glow {
+    position: absolute;
+    width: 550px;
+    height: 550px;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: .18;
+}
+
+.glow.one {
+    background: #00eaff;
+    top: -250px;
+    left: -200px;
+}
+
+.glow.two {
+    background: #743cff;
+    right: -250px;
+    bottom: -250px;
+}
+
+/* ---------- NAVBAR ---------- */
+
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 22px 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: .3s;
+}
+
+nav.scrolled {
+    background: rgba(2,4,11,.78);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.logo {
+    font-family: Orbitron, sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 3px;
+}
+
+.logo span {
+    color: #00eaff;
+    text-shadow: 0 0 20px #00eaff;
+}
+
+.nav-link {
+    color: #9ca8c5;
+    text-decoration: none;
+    font-size: 13px;
+    transition: .25s;
+}
+
+.nav-link:hover {
+    color: #00eaff;
+}
+
+/* ---------- HERO ---------- */
+
+.hero {
+    min-height: 100vh;
+    padding: 140px 7% 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 900px;
+}
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 15px;
+    border-radius: 100px;
+    border: 1px solid rgba(0,234,255,.25);
+    background: rgba(0,234,255,.06);
+    color: #8df8ff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 25px;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4dffb8;
+    box-shadow: 0 0 15px #4dffb8;
+}
+
+h1 {
+    font-family: Orbitron, sans-serif;
+    font-size: clamp(55px, 11vw, 125px);
+    line-height: .9;
+    letter-spacing: -5px;
+    margin-bottom: 30px;
+}
+
+.title-space {
+    color: #fff;
+}
+
+.title-invader {
+    background: linear-gradient(
+        100deg,
+        #00eaff,
+        #6c7cff,
+        #b45cff
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+}
+
+.subtitle {
+    color: #8995b0;
+    max-width: 650px;
+    margin: auto;
+    font-size: 17px;
+    line-height: 1.8;
+}
+
+/* ---------- SPACECRAFT ---------- */
+
+.ship-zone {
+    height: 250px;
+    position: relative;
+    margin: 20px auto 10px;
+}
+
+.ship {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 120px;
+    height: 150px;
+    transform: translate(-50%, -50%);
+    animation: shipFloat 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px rgba(0,234,255,.65));
+}
+
+@keyframes shipFloat {
+    0%,100% {
+        transform: translate(-50%, -50%) translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translate(-50%, -50%) translateY(-18px) rotate(2deg);
+    }
+}
+
+.ship-core {
+    position: absolute;
+    left: 42px;
+    top: 8px;
+    width: 36px;
+    height: 112px;
+    background: linear-gradient(
+        90deg,
+        #263656,
+        #e9faff,
+        #3b73a5,
+        #101a31
+    );
+    clip-path: polygon(
+        50% 0,
+        80% 25%,
+        100% 80%,
+        70% 100%,
+        50% 88%,
+        30% 100%,
+        0 80%,
+        20% 25%
+    );
+}
+
+.ship-cockpit {
+    position: absolute;
+    left: 48px;
+    top: 35px;
+    width: 24px;
+    height: 37px;
+    background: linear-gradient(#eaffff,#00cfff,#3151a8);
+    clip-path: polygon(50% 0,100% 65%,75% 100%,25% 100%,0 65%);
+}
+
+.wing {
+    position: absolute;
+    top: 65px;
+    width: 75px;
+    height: 60px;
+    background: linear-gradient(135deg,#273958,#10192d);
+}
+
+.wing.left {
+    left: -5px;
+    clip-path: polygon(0 100%,38% 0,100% 55%,75% 100%);
+}
+
+.wing.right {
+    right: -5px;
+    transform: scaleX(-1);
+    clip-path: polygon(0 100%,38% 0,100% 55%,75% 100%);
+}
+
+.flame {
+    position: absolute;
+    width: 12px;
+    height: 55px;
+    bottom: -12px;
+    border-radius: 50%;
+    background: linear-gradient(#fff,#00eaff,#456dff,transparent);
+    filter: blur(3px);
+}
+
+.flame.left {
+    left: 38px;
+}
+
+.flame.right {
+    right: 38px;
+}
+
+/* ---------- DOWNLOAD CARDS ---------- */
+
+.download-area {
+    max-width: 950px;
+    margin: 0 auto;
+}
+
+.download-title {
+    font-family: Orbitron, sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: #6f7d9b;
+    margin-bottom: 18px;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.download-btn {
+    position: relative;
+    min-height: 110px;
+    padding: 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.045);
+    backdrop-filter: blur(15px);
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-align: left;
+    overflow: hidden;
+    transition: .3s;
+}
+
+.download-btn::after {
+    content: "";
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    right: -50px;
+    bottom: -60px;
+    background: #00eaff;
+    filter: blur(55px);
+    opacity: .12;
+}
+
+.download-btn:hover {
+    transform: translateY(-6px);
+    border-color: rgba(0,234,255,.4);
+    background: rgba(0,234,255,.07);
+    box-shadow: 0 20px 50px rgba(0,0,0,.35);
+}
+
+.icon {
+    width: 55px;
+    height: 55px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 15px;
+    font-size: 27px;
+    background: rgba(0,234,255,.08);
+    border: 1px solid rgba(0,234,255,.15);
+}
+
+.download-btn strong {
+    display: block;
+    font-family: Orbitron, sans-serif;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.download-btn small {
+    color: #78849f;
+    font-size: 11px;
+}
+
+/* ---------- GAME TEST ---------- */
+
+.game-section {
+    padding: 120px 7%;
+}
+
+.game-box {
+    max-width: 1100px;
+    margin: auto;
+    padding: 55px;
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,.09);
+    background: rgba(7,12,27,.7);
+    backdrop-filter: blur(15px);
+    text-align: center;
+}
+
+.game-box h2 {
+    font-family: Orbitron, sans-serif;
+    font-size: clamp(30px,5vw,52px);
+    margin-bottom: 15px;
+}
+
+.game-box p {
+    color: #7f8ba6;
+    max-width: 600px;
+    margin: 0 auto 28px;
+    line-height: 1.7;
+}
+
+.test-button {
+    display: inline-flex;
+    padding: 16px 30px;
+    border-radius: 12px;
+    background: linear-gradient(135deg,#00eaff,#536dff);
+    color: #021019;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.test-button:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(0,234,255,.25);
+}
+
+/* ---------- INFO ---------- */
+
+.info {
+    max-width: 900px;
+    margin: auto;
+    padding: 0 7% 100px;
+    text-align: center;
+}
+
+.info h2 {
+    font-family: Orbitron, sans-serif;
+    margin-bottom: 15px;
+}
+
+.info p {
+    color: #727e99;
+    line-height: 1.8;
+    font-size: 14px;
+}
+
+/* ---------- FOOTER ---------- */
+
+footer {
+    padding: 35px 7%;
+    border-top: 1px solid rgba(255,255,255,.07);
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    color: #56617a;
+    font-size: 12px;
+}
+
+footer strong {
+    color: #00eaff;
+    font-family: Orbitron, sans-serif;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media(max-width:800px) {
+
+    nav {
+        padding: 20px 5%;
     }
 
-    body {
-      background-color: #050505;
-      color: #00ff00;
-      font-family: 'Courier New', Courier, monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      overflow: hidden;
+    .nav-link {
+        display: none;
     }
 
-    /* HEADER & DASHBOARD */
-    header {
-      margin-bottom: 10px;
-      text-align: center;
+    .hero {
+        padding: 125px 5% 60px;
     }
 
     h1 {
-      font-size: 32px;
-      text-shadow: 0 0 10px #00ff00;
-      margin-bottom: 5px;
+        font-size: clamp(48px,16vw,85px);
+        letter-spacing: -3px;
     }
 
-    .dashboard {
-      display: flex;
-      justify-content: space-between;
-      width: 600px;
-      background-color: #111;
-      border: 2px solid #00ff00;
-      padding: 10px 20px;
-      margin-bottom: 10px;
-      font-size: 18px;
+    .subtitle {
+        font-size: 14px;
     }
 
-    /* CANVAS AREA */
-    #gameContainer {
-      position: relative;
-      width: 600px;
-      height: 500px;
+    .ship-zone {
+        height: 220px;
     }
 
-    canvas {
-      background-color: #000;
-      border: 2px solid #00ff00;
-      box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-      display: block;
+    .buttons {
+        grid-template-columns: 1fr;
     }
 
-    /* CONTROLS GUIDE */
+    .download-btn {
+        min-height: 90px;
+    }
+
+    .game-section {
+        padding: 70px 5%;
+    }
+
+    .game-box {
+        padding: 40px 22px;
+    }
+
     footer {
-      margin-top: 15px;
-      color: #888;
-      font-size: 14px;
-      text-align: center;
+        flex-direction: column;
+        text-align: center;
     }
-
-    .key {
-      color: #fff;
-      font-weight: bold;
-    }
-  </style>
+}
+</style>
 </head>
+
 <body>
 
-  <header>
-    <h1>SPACE INVADERS</h1>
-  </header>
+<div class="space">
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+</div>
 
-  <div class="dashboard">
-    <div>SCORE: <span id="scoreVal">0</span></div>
-    <div>LIVES: <span id="livesVal">3</span></div>
-    <div>LEVEL: <span id="levelVal">1</span></div>
-  </div>
+<nav id="navbar">
+    <div class="logo">SPACE<span>INVADER</span></div>
+    <a href="#game" class="nav-link">TEST THE GAME →</a>
+</nav>
 
-  <div id="gameContainer">
-    <canvas id="gameCanvas" width="600" height="500"></canvas>
-  </div>
+<main>
 
-  <footer>
-    Press <span class="key">LEFT</span> / <span class="key">RIGHT</span> to move | Press <span class="key">SPACE</span> to shoot
-  </footer>
+<section class="hero">
 
-  <script>
-    // GAME CONFIGURATION & STATE
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    <div class="hero-content">
 
-    const scoreDisplay = document.getElementById("scoreVal");
-    const livesDisplay = document.getElementById("livesVal");
-    const levelDisplay = document.getElementById("levelVal");
+        <div class="status">
+            <span class="status-dot"></span>
+            SYSTEM ONLINE
+        </div>
 
-    let score = 0;
-    let lives = 3;
-    let level = 1;
-    let isGameOver = false;
+        <h1>
+            <span class="title-space">SPACE</span><br>
+            <span class="title-invader">INVADER</span>
+        </h1>
 
-    // PLAYER OBJECT
-    const player = {
-      x: canvas.width / 2 - 20,
-      y: canvas.height - 40,
-      width: 40,
-      height: 20,
-      speed: 5,
-      dx: 0,
-      color: "#00ff00"
-    };
+        <p class="subtitle">
+            Enter the battlefield. Pilot your ship, destroy enemy fleets,
+            defeat powerful bosses and push your score beyond the stars.
+        </p>
 
-    // PROJECTILES
-    const playerBullets = [];
-    const alienBullets = [];
-    const bulletSpeed = 6;
+        <div class="ship-zone">
 
-    // ALIEN GRID CONFIGURATION
-    const alienRows = 4;
-    const alienCols = 8;
-    const alienWidth = 32;
-    const alienHeight = 20;
-    const alienPadding = 15;
-    const alienOffsetTop = 40;
-    const alienOffsetLeft = 45;
+            <div class="ship">
+                <div class="ship-core"></div>
+                <div class="ship-cockpit"></div>
+                <div class="wing left"></div>
+                <div class="wing right"></div>
+                <div class="flame left"></div>
+                <div class="flame right"></div>
+            </div>
 
-    let aliens = [];
-    let alienDirection = 1;
-    let alienSpeed = 1;
-    let alienStepDown = 12;
+        </div>
 
-    // INITIALIZE ALIENS
-    function initAliens() {
-      aliens = [];
-      for (let r = 0; r < alienRows; r++) {
-        aliens[r] = [];
-        for (let c = 0; c < alienCols; c++) {
-          aliens[r][c] = {
-            x: c * (alienWidth + alienPadding) + alienOffsetLeft,
-            y: r * (alienHeight + alienPadding) + alienOffsetTop,
-            alive: true,
-            type: r // Different rows can represent different alien types
-          };
-        }
-      }
+        <div class="download-area">
+
+            <div class="download-title">
+                CHOOSE YOUR PLATFORM
+            </div>
+
+            <div class="buttons">
+
+                <!-- WINDOWS -->
+                <a
+                    href="SpaceInvader.exe"
+                    download
+                    class="download-btn"
+                >
+                    <div class="icon">🪟</div>
+                    <div>
+                        <strong>DOWNLOAD FOR WINDOWS</strong>
+                        <small>Windows • .EXE</small>
+                    </div>
+                </a>
+
+                <!-- ANDROID -->
+                <a
+                    href="SpaceInvader.apk"
+                    download
+                    class="download-btn"
+                >
+                    <div class="icon">🤖</div>
+                    <div>
+                        <strong>DOWNLOAD FOR ANDROID</strong>
+                        <small>Android • .APK</small>
+                    </div>
+                </a>
+
+                <!-- TEST GAME -->
+                <a
+                    href="game.html"
+                    class="download-btn"
+                >
+                    <div class="icon">🎮</div>
+                    <div>
+                        <strong>TEST THE GAME NOW</strong>
+                        <small>Play instantly • No download</small>
+                    </div>
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="game-section" id="game">
+
+    <div class="game-box">
+
+        <h2>READY FOR LAUNCH?</h2>
+
+        <p>
+            Don't want to install anything?
+            Jump straight into the browser version of SPACEINVADER
+            and start playing instantly.
+        </p>
+
+        <a href="game.html" class="test-button">
+            🚀 TEST THE GAME NOW
+        </a>
+
+    </div>
+
+</section>
+
+
+<section class="info">
+
+    <h2>THE MISSION</h2>
+
+    <p>
+        SPACEINVADER is built for players who want fast,
+        futuristic space combat. Destroy incoming enemies,
+        survive increasingly difficult waves, earn points,
+        unlock powerful ships and take on massive bosses.
+    </p>
+
+</section>
+
+</main>
+
+
+<footer>
+    <div>
+        <strong>SPACEINVADER</strong>
+    </div>
+
+    <div>
+        © 2026 SpaceInvader. All systems operational.
+    </div>
+</footer>
+
+
+<script>
+
+/* Navbar glass effect */
+
+const navbar = document.getElementById("navbar");
+
+window.addEventListener("scroll", () => {
+    if (window.scrollY > 30) {
+        navbar.classList.add("scrolled");
+    } else {
+        navbar.classList.remove("scrolled");
     }
+});
 
-    // INPUT HANDLING
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft") player.dx = -player.speed;
-      if (e.key === "ArrowRight") player.dx = player.speed;
-      if (e.key === " " && !isGameOver) {
-        firePlayerBullet();
-      }
+
+/* Smooth navigation */
+
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+
+    link.addEventListener("click", event => {
+
+        const target = document.querySelector(
+            link.getAttribute("href")
+        );
+
+        if (target) {
+            event.preventDefault();
+
+            target.scrollIntoView({
+                behavior: "smooth"
+            });
+        }
+
     });
 
-    document.addEventListener("keyup", (e) => {
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        player.dx = 0;
-      }
+});
+
+
+/* Small launch effect */
+
+document.querySelectorAll(".download-btn").forEach(button => {
+
+    button.addEventListener("click", () => {
+
+        button.style.transform = "scale(.97)";
+
+        setTimeout(() => {
+            button.style.transform = "";
+        }, 120);
+
     });
 
-    function firePlayerBullet() {
-      // Limit on-screen bullets to prevent spamming
-      if (playerBullets.length < 3) {
-        playerBullets.push({
-          x: player.x + player.width / 2 - 2,
-          y: player.y,
-          width: 4,
-          height: 10,
-          color: "#ffffff"
-        });
-      }
-    }
+});
 
-    // UPDATE GAME LOGIC
-    function updatePlayer() {
-      player.x += player.dx;
-      if (player.x < 0) player.x = 0;
-      if (player.x + player.width > canvas.width) {
-        player.x = canvas.width - player.width;
-      }
-    }
+</script>
 
-    function updateBullets() {
-      // Player bullets
-      for (let i = playerBullets.length - 1; i >= 0; i--) {
-        playerBullets[i].y -= bulletSpeed;
-        if (playerBullets[i].y < 0) {
-          playerBullets.splice(i, 1);
-        }
-      }
-    }
-
-    function updateAliens() {
-      let moveDown = false;
-
-      for (let r = 0; r < alienRows; r++) {
-        for (let c = 0; c < alienCols; c++) {
-          let a = aliens[r][c];
-          if (a.alive) {
-            a.x += alienSpeed * alienDirection;
-            if (a.x + alienWidth >= canvas.width || a.x <= 0) {
-              moveDown = true;
-            }
-          }
-        }
-      }
-
-      if (moveDown) {
-        alienDirection *= -1;
-        for (let r = 0; r < alienRows; r++) {
-          for (let c = 0; c < alienCols; c++) {
-            let a = aliens[r][c];
-            a.y += alienStepDown;
-            if (a.alive && a.y + alienHeight >= player.y) {
-              isGameOver = true;
-            }
-          }
-        }
-      }
-    }
-
-    function checkCollisions() {
-      for (let i = playerBullets.length - 1; i >= 0; i--) {
-        let b = playerBullets[i];
-        for (let r = 0; r < alienRows; r++) {
-          for (let c = 0; c < alienCols; c++) {
-            let a = aliens[r][c];
-            if (a.alive) {
-              if (
-                b.x < a.x + alienWidth &&
-                b.x + b.width > a.x &&
-                b.y < a.y + alienHeight &&
-                b.y + b.height > a.y
-              ) {
-                a.alive = false;
-                playerBullets.splice(i, 1);
-                score += 10;
-                scoreDisplay.textContent = score;
-                return;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // RENDER DRAWINGS
-    function drawPlayer() {
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-      // Cannon tip
-      ctx.fillRect(player.x + player.width / 2 - 3, player.y - 6, 6, 6);
-    }
-
-    function drawBullets() {
-      playerBullets.forEach((b) => {
-        ctx.fillStyle = b.color;
-        ctx.fillRect(b.x, b.y, b.width, b.height);
-      });
-    }
-
-    function drawAliens() {
-      for (let r = 0; r < alienRows; r++) {
-        for (let c = 0; c < alienCols; c++) {
-          let a = aliens[r][c];
-          if (a.alive) {
-            ctx.fillStyle = r === 0 ? "#ff0055" : r === 1 ? "#ffcc00" : "#00ccff";
-            ctx.fillRect(a.x, a.y, alienWidth, alienHeight);
-          }
-        }
-      }
-    }
-
-    function renderGameOver() {
-      ctx.fillStyle = "#ff0000";
-      ctx.font = "36px 'Courier New'";
-      ctx.textAlign = "center";
-      ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
-    }
-
-    // MAIN GAME LOOP
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (!isGameOver) {
-        updatePlayer();
-        updateBullets();
-        updateAliens();
-        checkCollisions();
-
-        drawPlayer();
-        drawBullets();
-        drawAliens();
-
-        requestAnimationFrame(gameLoop);
-      } else {
-        renderGameOver();
-      }
-    }
-
-    // START GAME
-    initAliens();
-    gameLoop();
-  </script>
 </body>
 </html>
+```
